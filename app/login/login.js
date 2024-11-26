@@ -1,6 +1,14 @@
+'use client';
 import { BsPersonVcardFill } from 'react-icons/bs';
+import { useRouter } from 'next/navigation';
 
 export default function Login() {
+  const router = useRouter();
+
+  const handleRegisterClick = () => {
+    router.push('/register');
+  };
+
   return (
     <div className="d-flex justify-content-center align-items-center vh-100 grayBackground">
       <div className="text-center">
@@ -20,7 +28,19 @@ export default function Login() {
           <div className="d-flex flex-column align-items-stretch">
             <button className="btn btn-primary mb-2 w-100">Login</button>
             <div className="d-flex justify-content-center">
-              <a href="register">Register</a>
+              <p className="text-white">
+                Don't have an account?&nbsp;
+                <a
+                  href="#"
+                  className="text-decoration-none"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleRegisterClick();
+                  }}
+                >
+                  Register
+                </a>
+              </p>
             </div>
           </div>
         </div>
