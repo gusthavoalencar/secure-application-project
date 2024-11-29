@@ -1,9 +1,19 @@
 import './globals.css';
+import loadDatabase from '../db.js';
 
 export const metadata = {
   title: 'Secure Application',
   description: 'Secure Application - Gusthavo Alencar - x19485176',
 };
+
+(async () => {
+  try {
+    await loadDatabase();
+  } catch (error) {
+    console.error('Failed loading database:', error);
+    process.exit(1);
+  }
+})();
 
 export default function RootLayout({ children }) {
   return (
