@@ -1,16 +1,59 @@
 'use client';
-import { BsPersonFillAdd } from 'react-icons/bs';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export default function Register() {
   const router = useRouter();
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    dateOfBirth: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
+  const [error, setError] = useState(null);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords dont match');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Something went wrong verify data');
+        return;
+      }
+
+      alert('Registration successful!');
+      router.push('/');
+    } catch (err) {
+      setError('Something went wrong verify data');
+    }
+  };
 
   return (
     <div className="d-flex justify-content-center align-items-center vh-100 grayBackground">
       <div className="text-center">
-        <BsPersonFillAdd className="loginIcon" />
         <p className="text-white mb-2 fs-2 fw-bold">Register</p>
-        <form>
+        <form onSubmit={handleSubmit}>
+          {error && <p className="text-danger">{error}</p>}
           <div className="mb-3 text-start">
             <label htmlFor="firstName" className="form-label text-white m-0">
               First Name
@@ -22,6 +65,8 @@ export default function Register() {
               className="form-control"
               placeholder="Enter your first name"
               required
+              value={formData.firstName}
+              onChange={handleChange}
             />
           </div>
           <div className="mb-3 text-start">
@@ -35,18 +80,22 @@ export default function Register() {
               className="form-control"
               placeholder="Enter your last name"
               required
+              value={formData.lastName}
+              onChange={handleChange}
             />
           </div>
           <div className="mb-3 text-start">
-            <label htmlFor="dob" className="form-label text-white m-0">
+            <label htmlFor="dateOfBirth" className="form-label text-white m-0">
               Date of Birth
             </label>
             <input
               type="date"
-              id="dob"
-              name="dob"
+              id="dateOfBirth"
+              name="dateOfBirth"
               className="form-control"
               required
+              value={formData.dateOfBirth}
+              onChange={handleChange}
             />
           </div>
           <div className="mb-3 text-start">
@@ -60,6 +109,8 @@ export default function Register() {
               className="form-control"
               placeholder="Enter your email"
               required
+              value={formData.email}
+              onChange={handleChange}
             />
           </div>
           <div className="mb-3 text-start">
@@ -73,6 +124,8 @@ export default function Register() {
               className="form-control"
               placeholder="Enter your password"
               required
+              value={formData.password}
+              onChange={handleChange}
             />
           </div>
           <div className="mb-3 text-start">
@@ -89,6 +142,8 @@ export default function Register() {
               className="form-control"
               placeholder="Confirm your password"
               required
+              value={formData.confirmPassword}
+              onChange={handleChange}
             />
           </div>
           <button className="btn btn-primary w-100">Register</button>
