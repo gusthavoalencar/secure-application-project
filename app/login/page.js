@@ -1,12 +1,25 @@
 'use client';
 import { BsPersonVcardFill } from 'react-icons/bs';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function Login() {
   const router = useRouter();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const checkLoggedIn = async () => {
+      const response = await fetch('/api/check-login');
+      const data = await response.json();
+
+      if (data.loggedIn) {
+        router.push('/home');
+      }
+    };
+
+    checkLoggedIn();
+  }, [router]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
