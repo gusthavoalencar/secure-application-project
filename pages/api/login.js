@@ -1,3 +1,4 @@
+import jwt from 'jsonwebtoken';
 import loadDatabase from '../../db.js';
 
 export default async function handler(req, res) {
@@ -12,19 +13,22 @@ export default async function handler(req, res) {
       const db = await loadDatabase();
       const user = await db.get('SELECT * FROM users WHERE email = ?', [email]);
 
-      if (!user) {
+      if (!user || user.password !== password) {
         return res.status(401).json({ error: 'Invalid email or password' });
       }
 
-      const isPasswordValid = password == user.password;
+      const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET, {
+        expiresIn: '1h',
+      });
 
-      if (!isPasswordValid) {
-        return res.status(401).json({ error: 'Invalid email or password' });
-      }
+      res.setHeader(
+        'Set-Cookie',
+        `token=${token}; HttpOnly; Path=/; Max-Age=3600`
+      );
 
       res.status(200).json({ message: 'Login successful' });
     } catch (error) {
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: error.message });
     }
   } else {
     res.status(405).json({ error: 'Method not allowed' });
