@@ -4,13 +4,18 @@ import path from 'path';
 
 const dbFilePath = path.resolve('./database.db');
 
-const loadDatabase = async () => {
-  const db = await open({
+export const openDatabase = async () => {
+  return open({
     filename: dbFilePath,
     driver: sqlite3.Database,
   });
-
-  return db;
 };
 
-export default loadDatabase;
+export const useDatabase = async (callback) => {
+  const db = await openDatabase();
+  try {
+    return await callback(db);
+  } finally {
+    await db.close();
+  }
+};

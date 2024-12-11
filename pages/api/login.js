@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
-import loadDatabase from '../../db.js';
+import { useDatabase } from '../../db.js';
+import bcrypt from 'bcrypt';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
@@ -10,21 +11,32 @@ export default async function handler(req, res) {
     }
 
     try {
-      const db = await loadDatabase();
-      const user = await db.get('SELECT * FROM users WHERE email = ?', [email]);
+      const user = await useDatabase(async (db) => {
+        return db.get('SELECT * FROM users WHERE email = ?', [email]);
+      });
 
-      if (!user || user.password !== password) {
+      if (!user) {
         return res.status(401).json({ error: 'Invalid email or password' });
       }
 
-      const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET, {
-        expiresIn: '1h',
-      });
+      const passwordMatch = await bcrypt.compare(password, user.password);
 
-      res.setHeader(
-        'Set-Cookie',
-        `token=${token}; HttpOnly; Path=/; Max-Age=3600`
+      if (!passwordMatch) {
+        return res.status(401).json({ error: 'Invalid email or password' });
+      }
+
+      const token = jwt.sign(
+        { id: user.id, email: user.email },
+        process.env.JWT_SECRET,
+        {
+          expiresIn: '1h',
+        }
       );
+
+      res.setHeader('Set-Cookie', [
+        `token=${token}; Path=/; Max-Age=3600; HttpOnly`,
+        `userId=${user.id}; Path=/; Max-Age=3600; HttpOnly`,
+      ]);
 
       res.status(200).json({ message: 'Login successful' });
     } catch (error) {
