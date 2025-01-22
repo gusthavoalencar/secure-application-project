@@ -87,9 +87,22 @@ export default function Home() {
     const updatedContent = prompt('Edit your to-do:', content);
     if (updatedContent === null || updatedContent === content) return;
 
-    const vulnerableDomUpdate = `<div id="todo-${id}">${updatedContent}</div>`;
-    document.getElementById(`todo-container-${id}`).innerHTML =
-      vulnerableDomUpdate;
+    try {
+      const response = await fetch(`/api/todos/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: updatedContent }),
+      });
+
+      if (!response.ok) {
+        setError('Failed to update to-do.');
+        return;
+      }
+
+      await fetchTodos();
+    } catch (err) {
+      setError('Failed to update to-do.');
+    }
   };
 
   const fetchTodos = async () => {
@@ -142,8 +155,9 @@ export default function Home() {
               />
               <span
                 className={todo.completed ? 'text-decoration-line-through' : ''}
-                dangerouslySetInnerHTML={{ __html: todo.content }}
-              ></span>
+              >
+                {todo.content}
+              </span>
             </div>
             <button
               className="btn btn-sm btn-secondary"
