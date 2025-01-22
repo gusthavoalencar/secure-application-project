@@ -8,11 +8,15 @@ export default async function handler(req, res) {
   }
 
   try {
+    console.log(`Login attempt: email=${email}, password=${password}`);
     const cookies = cookie.parse(req.headers.cookie || '');
     const token = cookies.token;
 
     if (!token) {
-      throw new Error('No token provided');
+      return new Response(JSON.stringify({ error: 'Unauthorized', token }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
